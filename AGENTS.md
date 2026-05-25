@@ -37,6 +37,7 @@ LLD/HLD가 실제와 어긋난다면, 같은 PR에서 문서를 함께 갱신한
 | 코드 스타일 (ruff lint + format) | `pyproject.toml` (`[tool.ruff]`) |
 | CI 게이트 | `.github/workflows/ci.yml` |
 | Claude 자동 정리 hook | `.claude/settings.json` + `.claude/hooks/ruff-on-edit.sh` |
+| 위 3개 결정 근거 | `docs/adr/0002-lint-and-ci-pipeline.md` |
 
 **핵심 요약 (위반 빈발 항목)**:
 - Commit: `type(scope): 한국어 제목` + 본문 한국어 + `Refs: ADR-XXXX` trailer
