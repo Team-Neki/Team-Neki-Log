@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "report_date": "2026-05-24",
+  "report_type": "ga4-daily-report",
+  "generated_at": "2026-05-25T01:00:00Z",
+  "source": { "property_id": "524989384" },
+  "events": {
+    "session_start": { "count": 123, "users": 123 },
+    "first_open": { "count": 45, "users": 45 },
+    "map_view": { "count": 100, "users": 80 }
+  },
+  "dimensions": {
+    "map_brand_filter_toggle.brand_name": [
+      { "value": "BrandA", "count": 10 },
+      { "value": "BrandB", "count": 5 }
+    ],
+    "photo_upload.method": [
+      { "value": "gallery", "count": 30 },
+      { "value": "qr", "count": 5 }
+    ]
+  }
+}

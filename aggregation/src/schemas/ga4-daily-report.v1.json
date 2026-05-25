@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GA4 Daily Report Aggregation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_date",
+    "report_type",
+    "generated_at",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$"
+    },
+    "report_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "report_type": {
+      "type": "string",
+      "const": "ga4-daily-report"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["property_id"],
+      "properties": {
+        "property_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "events": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/event_stat" }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/dimension_breakdown" }
+      }
+    }
+  },
+  "definitions": {
+    "event_stat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 0 },
+        "users": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "dimension_breakdown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "count"],
+      "properties": {
+        "value": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
