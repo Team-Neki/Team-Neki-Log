@@ -30,3 +30,6 @@ venv/
 *.zip
 build/
 dist/
+
+# Tooling local state
+.omc/
