@@ -1,0 +1,39 @@
+[project]
+name = "team-neki-log"
+version = "0.0.0"
+requires-python = ">=3.13"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = [
+    ".terraform",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",   # line length (handled by formatter)
+    "B008",   # function call in default arg (boto3 client pattern)
+    "SIM117", # combine multiple `with` (less readable in tests)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"aggregation/tests/**" = ["B017"]  # broad pytest.raises in failure tests
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["aggregation/tests"]
+addopts = "-ra"
