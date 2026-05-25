@@ -1,0 +1,4 @@
+# Copy to terraform.tfvars and fill in actual values.
+# terraform.tfvars is .gitignored.
+
+alert_email = "you@example.com"
