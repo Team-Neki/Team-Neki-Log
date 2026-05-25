@@ -52,9 +52,7 @@ def test_valid_payload_stores_and_returns_200(s3_client, fixture_payload, contex
 
 def test_object_key_uses_zero_padded_hive_partition(s3_client, fixture_payload, context):
     handler = _reload_handler()
-    fixture_payload["report_date"] = (
-        datetime.now(KST).date() - timedelta(days=1)
-    ).isoformat()
+    fixture_payload["report_date"] = (datetime.now(KST).date() - timedelta(days=1)).isoformat()
 
     response = handler.lambda_handler(_make_event(fixture_payload), context)
     body = json.loads(response["body"])
@@ -126,9 +124,7 @@ def test_minor_version_accepted(s3_client, fixture_payload, context):
 
 def test_date_too_old_returns_400(s3_client, fixture_payload, context):
     handler = _reload_handler()
-    fixture_payload["report_date"] = (
-        datetime.now(KST).date() - timedelta(days=30)
-    ).isoformat()
+    fixture_payload["report_date"] = (datetime.now(KST).date() - timedelta(days=30)).isoformat()
     response = handler.lambda_handler(_make_event(fixture_payload), context)
     assert response["statusCode"] == 400
     body = json.loads(response["body"])
@@ -139,9 +135,7 @@ def test_date_too_old_returns_400(s3_client, fixture_payload, context):
 
 def test_date_in_future_returns_400(s3_client, fixture_payload, context):
     handler = _reload_handler()
-    fixture_payload["report_date"] = (
-        datetime.now(KST).date() + timedelta(days=2)
-    ).isoformat()
+    fixture_payload["report_date"] = (datetime.now(KST).date() + timedelta(days=2)).isoformat()
     response = handler.lambda_handler(_make_event(fixture_payload), context)
     assert response["statusCode"] == 400
     assert json.loads(response["body"])["error"]["code"] == "DATE_OUT_OF_RANGE"

@@ -1,7 +1,10 @@
 # ADR-0001: Aggregation Storage on S3
 
 ## Status
-Proposed (2026-05-25)
+Accepted (2026-05-26)
+
+> 2026-05-25: Proposed
+> 2026-05-26: Accepted — 본 ADR이 정의한 아키텍처대로 aggregation 토픽 구현·배포가 완료되어 사실상 채택 상태. ADR-0002 작성과 함께 명시적으로 전환.
 
 ## Context and Problem Statement
 
