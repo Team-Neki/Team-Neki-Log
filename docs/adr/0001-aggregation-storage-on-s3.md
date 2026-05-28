@@ -5,6 +5,7 @@ Accepted (2026-05-26)
 
 > 2026-05-25: Proposed
 > 2026-05-26: Accepted — 본 ADR이 정의한 아키텍처대로 aggregation 토픽 구현·배포가 완료되어 사실상 채택 상태. ADR-0002 작성과 함께 명시적으로 전환.
+> 2026-05-29: Producer 책임 위치를 ADR-0003에서 본 레포 내부로 명시. 본 ADR의 architecture 결정 자체는 불변.
 
 ## Context and Problem Statement
 
@@ -200,5 +201,5 @@ S3 (영구 저장)
 - 작성 컨텍스트: 2026-05-25 의사결정 ping-pong 대화
 - 관련 자산:
   - `scripts/ga_daily_report.py` (GA4 호출 스크립트)
-  - `.github/workflows/ga4-daily-report.yml` (GitHub Actions 워크플로)
+  - `.github/workflows/daily-ga-report.yml` (GitHub Actions 워크플로)
 - 추후 작성 예정: `docs/payload-schema.md`

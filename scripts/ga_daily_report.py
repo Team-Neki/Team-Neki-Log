@@ -1,16 +1,17 @@
-import os
 import datetime
+import os
+
 import requests
-from google.oauth2.credentials import Credentials
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
-    RunReportRequest,
     DateRange,
     Dimension,
-    Metric,
-    FilterExpression,
     Filter,
+    FilterExpression,
+    Metric,
+    RunReportRequest,
 )
+from google.oauth2.credentials import Credentials
 
 PROPERTY_ID = "524989384"
 DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
@@ -69,8 +70,10 @@ def main():
 
     # 브랜드별 필터 토글
     brand_resp = run_report(
-        client, yesterday,
-        ["customEvent:brand_name"], ["eventCount"],
+        client,
+        yesterday,
+        ["customEvent:brand_name"],
+        ["eventCount"],
         dimension_filter=event_filter("map_brand_filter_toggle"),
     )
     brand_lines = []
@@ -82,8 +85,10 @@ def main():
 
     # 업로드 method별
     upload_resp = run_report(
-        client, yesterday,
-        ["customEvent:method"], ["eventCount"],
+        client,
+        yesterday,
+        ["customEvent:method"],
+        ["eventCount"],
         dimension_filter=event_filter("photo_upload"),
     )
     upload = {}
@@ -97,29 +102,35 @@ def main():
     def lines_to_value(lines):
         return "\n".join(lines) or "없음"
 
-    map_desc = "\n".join([
-        f"진입 **{ev.get('map_view', 0)}회** ({us.get('map_view', 0)}명)",
-        f"재검색 **{ev.get('map_re_search', 0)}회**",
-        f"브랜드 필터 **{ev.get('map_brand_filter_toggle', 0)}회**",
-    ] + brand_lines + [
-        f"부스 선택 **{ev.get('booth_select', 0)}회** ({us.get('booth_select', 0)}명)",
-        f"길찾기 **{ev.get('map_route_click', 0)}회**",
-    ])
+    map_desc = "\n".join(
+        [
+            f"진입 **{ev.get('map_view', 0)}회** ({us.get('map_view', 0)}명)",
+            f"재검색 **{ev.get('map_re_search', 0)}회**",
+            f"브랜드 필터 **{ev.get('map_brand_filter_toggle', 0)}회**",
+            *brand_lines,
+            f"부스 선택 **{ev.get('booth_select', 0)}회** ({us.get('booth_select', 0)}명)",
+            f"길찾기 **{ev.get('map_route_click', 0)}회**",
+        ]
+    )
 
-    pose_desc = "\n".join([
-        f"진입 **{ev.get('pose_view', 0)}회** ({us.get('pose_view', 0)}명)",
-        f"필터 토글 **{ev.get('pose_filter_toggle', 0)}회**",
-        f"랜덤 시작 **{ev.get('pose_random_start', 0)}회**",
-        f"북마크 **{ev.get('pose_bookmark', 0)}회**",
-    ])
+    pose_desc = "\n".join(
+        [
+            f"진입 **{ev.get('pose_view', 0)}회** ({us.get('pose_view', 0)}명)",
+            f"필터 토글 **{ev.get('pose_filter_toggle', 0)}회**",
+            f"랜덤 시작 **{ev.get('pose_random_start', 0)}회**",
+            f"북마크 **{ev.get('pose_bookmark', 0)}회**",
+        ]
+    )
 
-    archive_desc = "\n".join([
-        f"진입 **{ev.get('archiving_view', 0)}회** ({us.get('archiving_view', 0)}명)",
-        f"사진 상세 **{ev.get('photo_detail_view', 0)}회**",
-        f"메모 작성 **{ev.get('photo_memo_create', 0)}회**",
-        f"앨범 생성 **{ev.get('album_create', 0)}회**",
-        f"업로드  갤러리 **{gallery}회**  |  QR **{qr}회**",
-    ])
+    archive_desc = "\n".join(
+        [
+            f"진입 **{ev.get('archiving_view', 0)}회** ({us.get('archiving_view', 0)}명)",
+            f"사진 상세 **{ev.get('photo_detail_view', 0)}회**",
+            f"메모 작성 **{ev.get('photo_memo_create', 0)}회**",
+            f"앨범 생성 **{ev.get('album_create', 0)}회**",
+            f"업로드  갤러리 **{gallery}회**  |  QR **{qr}회**",
+        ]
+    )
 
     embeds = [
         {

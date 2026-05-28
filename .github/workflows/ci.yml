@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "aggregation/**"
+      - "scripts/**"
       - "pyproject.toml"
       - ".github/workflows/ci.yml"
   push:
     branches: [main]
     paths:
       - "aggregation/**"
+      - "scripts/**"
       - "pyproject.toml"
       - ".github/workflows/ci.yml"
 
