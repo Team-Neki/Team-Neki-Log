@@ -6,9 +6,9 @@
 
 ## 1. Repo 한 줄 요약
 
-Team-Neki-Log는 네키 앱 도메인의 **일간 집계 데이터를 수신·저장**하는 시스템이다. AWS API Gateway → Lambda → S3. Terraform IaC. Python 3.13. 단일 AWS 계정, 단일 리전(ap-northeast-2), 단일 환경(prod). 분석/조회/시각화는 **명시적 non-goal**이고 별도 모듈이 처리한다.
+Team-Neki-Log는 네키 앱 도메인의 **일간 집계 데이터를 생성·수신·저장**하는 시스템이다. Producer(GitHub Actions cron + Python) → API Gateway → Lambda → S3. Terraform IaC. Python 3.13. 단일 AWS 계정, 단일 리전(ap-northeast-2), 단일 환경(prod). 분석/조회/시각화는 **명시적 non-goal**이고 별도 모듈이 처리한다.
 
-상세 배경은 `docs/adr/0001-aggregation-storage-on-s3.md`.
+상세 배경: `docs/adr/0001-aggregation-storage-on-s3.md` (저장 아키텍처), `docs/adr/0003-producer-in-repo.md` (Producer 책임 위치).
 
 ## 2. 의사결정 우선순위
 
@@ -41,7 +41,7 @@ LLD/HLD가 실제와 어긋난다면, 같은 PR에서 문서를 함께 갱신한
 
 **핵심 요약 (위반 빈발 항목)**:
 - Commit: `type(scope): 한국어 제목` + 본문 한국어 + `Refs: ADR-XXXX` trailer
-- Scope는 **토픽 기반** (`aggregation`, `raw`, `infra`, `docs`, `ci`, `repo`). 디렉토리명 아님
+- Scope는 **토픽 기반** (`producer`, `aggregation`, `raw`, `infra`, `docs`, `ci`, `repo`). 디렉토리명 아님
 - Breaking change는 type 뒤 `!` 표기 + `BREAKING CHANGE:` 본문
 - PR 제목 = 그대로 squash commit이 된다. PR 제목도 commit 포맷을 따라라
 
@@ -51,7 +51,7 @@ LLD/HLD가 실제와 어긋난다면, 같은 PR에서 문서를 함께 갱신한
 |---|---|
 | **aggregation** | 일간 집계 데이터(현재 GA4 일간 리포트). raw와 **완전 독립**된 토픽 |
 | **raw** | 원본 로그 (현 시점 미도입, 향후 ADR로 추가) |
-| **Producer** | 본 시스템에 데이터를 POST 하는 외부 시스템. 현재 1차 Producer는 GitHub Actions cron + Python (`scripts/ga_daily_report.py`). **이 레포 책임 영역 밖** |
+| **Producer** | 일간 집계 데이터를 생성해 본 시스템에 공급하는 컴포넌트. 현재 1차 Producer는 GitHub Actions cron + Python (`scripts/ga_daily_report.py`, `.github/workflows/daily-ga-report.yml`). **본 레포 책임** (ADR-0003) |
 | **report_date** | 보고 대상 일자 (KST 기준). S3 경로 `day=` 값과 동일 |
 | **generated_at** | Producer가 페이로드를 만든 시각 (ISO 8601 UTC) |
 | **schema_version** | 페이로드 contract 버전 (`major.minor`). minor=backward compat, major=break |
