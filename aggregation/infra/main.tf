@@ -8,15 +8,13 @@ terraform {
     }
   }
 
-  # NOTE: 초기 배포 시 backend S3 버킷이 아직 없으므로 우선 local state로 시작.
-  # 첫 apply로 버킷이 생성된 뒤 아래 backend를 활성화하고
-  # `terraform init -migrate-state` 로 state를 옮긴다.
-  #
-  # backend "s3" {
-  #   bucket = "team-neki-log-production"
-  #   key    = "terraform/state/aggregation.tfstate"
-  #   region = "ap-northeast-2"
-  # }
+  # State는 첫 apply로 생성된 버킷의 terraform/state/ prefix에 self-host한다.
+  # DynamoDB 잠금 미사용 (단일 운영자 가정, LLD §9.3).
+  backend "s3" {
+    bucket = "team-neki-log-production"
+    key    = "terraform/state/aggregation.tfstate"
+    region = "ap-northeast-2"
+  }
 }
 
 provider "aws" {
