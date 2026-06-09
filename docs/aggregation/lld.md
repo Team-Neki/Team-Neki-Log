@@ -529,10 +529,21 @@ Terraform이 처리할 수 없는 항목. 별도 README에 상세 절차 기술 
 | 항목 | 위치 | 시점 |
 |---|---|---|
 | **GA4 property reporting timezone 설정** | Google Analytics 콘솔 | 최초 1회 |
-| **GitHub Actions Secret 등록 (API URL)** | GitHub repo settings | terraform apply 후 |
+| **GitHub Actions Secret `AGGREGATION_INGEST_URL` 등록** | GitHub repo settings (또는 `gh secret set`) | terraform apply 후, Producer 첫 실행 전 |
 | **AWS Budgets 알림 이메일 confirm** | 메일함의 SNS subscription confirmation | 첫 배포 직후 |
 | **AWS 계정 자체 셋업** (IAM, MFA 등) | AWS 콘솔 | 최초 1회 |
 | **terraform.tfvars의 `alert_email` 값 설정** | 로컬 또는 CI secret | 첫 배포 전 |
+
+`AGGREGATION_INGEST_URL` 값은 `terraform output -raw api_endpoint`. 코드/PR/커밋에 적지 않는다 (Shared Secret URL, §6).
+
+### 9.5 Producer → ingest 전송 동작
+
+1차 Producer(`scripts/ga_daily_report.py`)는 GA4 집계 후 **저장을 우선**해 ingest API로 먼저 POST하고, 그다음 Discord 알림을 보낸다.
+
+- 페이로드: `scripts/ingest.py:build_payload`가 §2.2 스키마로 구성 (디멘션 값 `(not set)` 제외)
+- 전송: `post_report`가 429/5xx/네트워크 오류만 지수 backoff 재시도(1·2·4초). 4xx는 페이로드 버그로 보고 즉시 실패(재시도 무의미)
+- 실패 격리: ingest가 끝내 실패해도 Discord 리포트는 전송하되 메시지에 저장 실패를 표기하고, job은 non-zero exit로 종료 → GitHub Actions 실패 = 운영 알림(§2.4). `report_date`가 멱등이라 `workflow_dispatch` 재실행이 안전
+- 환경변수 `AGGREGATION_INGEST_URL` 필수. 미설정 시 즉시 실패(설정 오류로 간주)
 
 ## 10. References
 - [ADR-0001: Aggregation Storage on S3](../adr/0001-aggregation-storage-on-s3.md)
