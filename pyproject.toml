@@ -35,5 +35,5 @@ ignore = [
 quote-style = "double"
 
 [tool.pytest.ini_options]
-testpaths = ["aggregation/tests"]
+testpaths = ["aggregation/tests", "scripts/tests"]
 addopts = "-ra"

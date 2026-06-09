@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 
 import requests
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
@@ -12,9 +13,11 @@ from google.analytics.data_v1beta.types import (
     RunReportRequest,
 )
 from google.oauth2.credentials import Credentials
+from ingest import build_payload, post_report
 
 PROPERTY_ID = "524989384"
 DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
+AGGREGATION_INGEST_URL = os.environ["AGGREGATION_INGEST_URL"]
 
 
 def get_client():
@@ -76,10 +79,12 @@ def main():
         ["eventCount"],
         dimension_filter=event_filter("map_brand_filter_toggle"),
     )
+    brand_counts = {}
     brand_lines = []
     for row in sorted(brand_resp.rows, key=lambda r: int(r.metric_values[0].value), reverse=True):
         name = row.dimension_values[0].value
-        count = row.metric_values[0].value
+        count = int(row.metric_values[0].value)
+        brand_counts[name] = count
         if name != "(not set)":
             brand_lines.append(f"  └ {name} {count}회")
 
@@ -98,6 +103,25 @@ def main():
 
     gallery = upload.get("gallery", 0)
     qr = upload.get("qr", 0)
+
+    # 저장 우선: 먼저 ingest API로 전송한다. 실패해도 Discord 알림은 보내되
+    # (사람은 저장 장애와 무관하게 리포트를 받아야 함) 끝에서 non-zero exit로 노출.
+    payload = build_payload(
+        report_date=yesterday,
+        generated_at=datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"),
+        events=ev,
+        users=us,
+        dimensions={
+            "map_brand_filter_toggle.brand_name": brand_counts,
+            "photo_upload.method": upload,
+        },
+    )
+    ingest_error = None
+    try:
+        post_report(AGGREGATION_INGEST_URL, payload)
+    except Exception as exc:
+        ingest_error = str(exc)
+        print(f"ingest 저장 실패: {ingest_error}")
 
     def lines_to_value(lines):
         return "\n".join(lines) or "없음"
@@ -132,10 +156,14 @@ def main():
         ]
     )
 
+    header_desc = f"👥 DAU **{dau}명**  |  신규 **{new_users}명**"
+    if ingest_error:
+        header_desc += "\n⚠️ 데이터 저장 실패 — CI 로그 확인 후 재실행 필요"
+
     embeds = [
         {
             "title": f"📊 GA4 일간 리포트 · {yesterday}",
-            "description": f"👥 DAU **{dau}명**  |  신규 **{new_users}명**",
+            "description": header_desc,
             "color": 0x5865F2,
         },
         {
@@ -156,15 +184,18 @@ def main():
         },
     ]
 
-    payload = {
+    discord_payload = {
         "username": "네키 GA 봇",
         "avatar_url": "https://i.ifh.cc/PbdkGM.jpg",
         "embeds": embeds,
     }
 
-    resp = requests.post(DISCORD_WEBHOOK_URL, json=payload)
+    resp = requests.post(DISCORD_WEBHOOK_URL, json=discord_payload)
     resp.raise_for_status()
-    print(f"전송 완료: {resp.status_code} / {yesterday}")
+    print(f"Discord 전송 완료: {resp.status_code} / {yesterday}")
+
+    if ingest_error:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
