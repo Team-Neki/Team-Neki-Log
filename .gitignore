@@ -32,3 +32,6 @@ dist/
 
 # Tooling local state
 .omc/
+
+# Git worktrees (project-local)
+.worktrees/

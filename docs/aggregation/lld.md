@@ -390,12 +390,18 @@ aggregation/
 
 ### 9.1 Lambda 코드 패키징 전략
 
-**옵션 A 채택: Terraform이 `archive_file`로 코드 zip 패키징**
+**옵션 A 채택: Terraform이 코드 + 의존성을 zip으로 패키징해 함께 배포**
 
 - 단일 도구·단일 워크플로 (`terraform apply` 한 번에 인프라 + 코드 배포)
-- 코드 변경 시 zip 해시가 바뀌어 Lambda 함수가 자동 갱신됨
+- 코드/스키마/`requirements.txt` 중 하나라도 바뀌면 `source_hash`가 바뀌어 Lambda 함수가 자동 갱신됨
 - 트레이드오프: 코드만 변경되어도 TF state가 변경됨 (수용)
 - 변경 빈도가 늘면 옵션 B(별도 코드 배포 파이프라인)로 마이그레이션 가능
+
+**구현 (`infra/lambda.tf`)**: `handler.py`는 `jsonschema`(+ 네이티브 의존성 `rpds-py`)를 import하는데, 이는 Lambda 런타임 기본 제공이 아니다(`boto3`만 제공). 순수 `archive_file`은 빌드 산출물을 plan 시점에 읽어야 해 의존성 vendor와 양립하지 않으므로, 다음 방식을 쓴다:
+
+- `null_resource.lambda_build`(`local-exec`)가 `src/`를 `build/pkg/`로 복사하고, `pip install --platform manylinux2014_aarch64 --implementation cp --python-version 3.13 --only-binary=:all:`로 arm64/py3.13 대상 wheel을 vendor한 뒤 `build/lambda.zip`으로 압축
+- `aws_lambda_function`은 `filename = build/lambda.zip`, `source_code_hash = sha256(소스 입력 해시)`로 참조 (zip 산출물이 아닌 소스 해시 기준 → 클린 체크아웃에서도 plan 가능)
+- **apply 환경 요구사항**: `bash`, `python3`(+`pip`), `zip`, 네트워크 (wheel 다운로드). 로컬 Python 버전과 무관 (`--platform`/`--python-version`으로 교차 빌드)
 
 ### 9.2 핵심 Terraform 리소스 (요약)
 
