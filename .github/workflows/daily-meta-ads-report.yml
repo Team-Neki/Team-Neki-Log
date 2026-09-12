@@ -1,0 +1,27 @@
+name: Meta Ads Daily Report
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 매일 10:00 KST
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Meta Ads daily report
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.AMPLITUDE_DISCORD_WEBHOOK_URL }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID }}
+        run: python scripts/meta_ads_daily_report.py
