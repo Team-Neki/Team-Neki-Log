@@ -39,7 +39,12 @@ def query(date, event_type, metric="uniques", group_by=None):
     if group_by:
         labels = data.get("seriesLabels", [])
         series = data.get("series", [])
-        return [(label, (series[i][0] if series[i] else 0)) for i, label in enumerate(labels)]
+        result = []
+        for i, label in enumerate(labels):
+            value = label[-1] if isinstance(label, list) else label
+            count = series[i][0] if i < len(series) and series[i] else 0
+            result.append((value, count))
+        return result
 
     series = data.get("series", [[0]])
     return series[0][0] if series and series[0] else 0
