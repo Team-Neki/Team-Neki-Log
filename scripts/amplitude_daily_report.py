@@ -76,10 +76,14 @@ def main():
         metric="totals",
         group_by=[{"type": "event", "value": "brand_name"}],
     )
+    booth_favorite_add = query(yesterday, "booth_favorite_add", metric="totals")
+    booth_favorite_remove = query(yesterday, "booth_favorite_remove", metric="totals")
+    favorite_booth_view = query(yesterday, "favorite_booth_view", metric="totals")
 
     pose_filter_toggle = query(yesterday, "pose_filter_toggle", metric="totals")
     pose_random_start = query(yesterday, "pose_random_start", metric="totals")
     pose_bookmark = query(yesterday, "pose_bookmark", metric="totals")
+    pose_bookmark_filter = query(yesterday, "pose_bookmark_filter", metric="totals")
 
     photo_detail_view = query(yesterday, "photo_detail_view", metric="totals")
     photo_memo_create = query(yesterday, "photo_memo_create", metric="totals")
@@ -95,68 +99,49 @@ def main():
     gallery = upload_breakdown.get("gallery", 0)
     qr = upload_breakdown.get("qr", 0)
 
+    notification_click = query(yesterday, "notification_click", metric="totals")
+    mypage_logout = query(yesterday, "mypage_logout", metric="totals")
+    mypage_withdraw = query(yesterday, "mypage_withdraw", metric="totals")
+
     brand_lines = [
-        f"  └ {name} {count}회" for name, count in brand_breakdown if name and name != "(none)"
+        f"    └ {name} {count}회" for name, count in brand_breakdown if name and name != "(none)"
     ]
 
-    map_desc = "\n".join(
-        [
-            f"진입 **{map_view_count}회** ({map_view_users}명)",
-            f"재검색 **{map_re_search}회**",
-            f"브랜드 필터 **{map_brand_filter_toggle}회**",
-            *brand_lines,
-            f"부스 선택 **{booth_select_count}회** ({booth_select_users}명)",
-            f"길찾기 **{map_route_click}회**",
-        ]
-    )
-
-    pose_desc = "\n".join(
-        [
-            f"진입 **{pose_view_count}회** ({pose_view_users}명)",
-            f"필터 토글 **{pose_filter_toggle}회**",
-            f"랜덤 시작 **{pose_random_start}회**",
-            f"북마크 **{pose_bookmark}회**",
-        ]
-    )
-
-    archive_desc = "\n".join(
-        [
-            f"진입 **{archiving_view_count}회** ({archiving_view_users}명)",
-            f"사진 상세 **{photo_detail_view}회**",
-            f"메모 작성 **{photo_memo_create}회**",
-            f"앨범 생성 **{album_create}회**",
-            f"업로드  갤러리 **{gallery}회**  |  QR **{qr}회**",
-        ]
-    )
-
-    embeds = [
-        {
-            "title": f"📊 Amplitude 일간 리포트 · {yesterday_display}",
-            "description": f"👥 DAU **{dau}명**  |  신규 **{new_users}명**",
-            "color": 0x5865F2,
-        },
-        {
-            "title": "🗺 지도",
-            "description": map_desc,
-            "color": 0x57F287,
-        },
-        {
-            "title": "🧘 포즈",
-            "description": pose_desc,
-            "color": 0xFEE75C,
-        },
-        {
-            "title": "📦 아카이브",
-            "description": archive_desc,
-            "color": 0xEB459E,
-            "footer": {"text": "neki · Amplitude 자동 리포트"},
-        },
+    lines = [
+        f"📊 **Amplitude 일간 리포트 · {yesterday_display}**",
+        f"👥 DAU **{dau}명**  |  신규(설치) **{new_users}명**  |  🔔 알림 재유입 **{notification_click}회**",
+        f"↩️ 로그아웃 **{mypage_logout}회**  |  ⚠️ 탈퇴 **{mypage_withdraw}회**",
+        "",
+        "🗺 **지도**",
+        f"진입 **{map_view_count}회** ({map_view_users}명)",
+        f"재검색 **{map_re_search}회**",
+        f"브랜드 필터 **{map_brand_filter_toggle}회**",
+        *brand_lines,
+        f"부스 선택 **{booth_select_count}회** ({booth_select_users}명)",
+        f"길찾기 **{map_route_click}회**",
+        f"즐겨찾기 추가/삭제 **{booth_favorite_add}회 / {booth_favorite_remove}회**",
+        f"즐겨찾기 조회 **{favorite_booth_view}회**",
+        "",
+        "🧘 **포즈**",
+        f"진입 **{pose_view_count}회** ({pose_view_users}명)",
+        f"필터 토글 **{pose_filter_toggle}회**",
+        f"랜덤 시작 **{pose_random_start}회**",
+        f"북마크 **{pose_bookmark}회**  |  북마크 필터 **{pose_bookmark_filter}회**",
+        "",
+        "📦 **아카이브**",
+        f"진입 **{archiving_view_count}회** ({archiving_view_users}명)",
+        f"사진 상세 **{photo_detail_view}회**",
+        f"메모 작성 **{photo_memo_create}회**",
+        f"앨범 생성 **{album_create}회**",
+        f"업로드  갤러리 **{gallery}회**  |  QR **{qr}회**",
+        "",
+        "-# neki · Amplitude 자동 리포트",
     ]
 
     payload = {
         "username": "네키 Amplitude 봇",
         "avatar_url": "https://i.ifh.cc/PbdkGM.jpg",
-        "embeds": embeds,
+        "content": "\n".join(lines),
     }
 
     resp = requests.post(DISCORD_WEBHOOK_URL, json=payload)
