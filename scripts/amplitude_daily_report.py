@@ -55,7 +55,7 @@ def main():
     yesterday_display = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
 
     dau = query(yesterday, "_active", metric="uniques")
-    new_users = query(yesterday, "_new", metric="uniques")
+    new_users = query(yesterday, "[Amplitude] Application Installed", metric="uniques")
 
     def totals_and_users(event_type):
         return query(yesterday, event_type, metric="totals"), query(
