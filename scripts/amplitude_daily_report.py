@@ -33,6 +33,11 @@ def query(date, event_type, metric="uniques", group_by=None):
         auth=(API_KEY, SECRET_KEY),
         timeout=15,
     )
+    if resp.status_code == 400:
+        # 한 번도 발생한 적 없는 이벤트는 Amplitude가 "Invalid <event>"로 거부한다.
+        # 데이터가 없다는 뜻이므로 0으로 취급한다.
+        print(f"경고: {event_type} 조회 실패(400), 0으로 처리: {resp.text}")
+        return [] if group_by else 0
     resp.raise_for_status()
     data = resp.json()["data"]
 
