@@ -106,54 +106,52 @@ def main():
     yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
 
     insights = get_campaign_insights(yesterday)
-    gender_breakdown = get_gender_breakdown(yesterday) if insights else {}
+    insights = [row for row in insights if float(row.get("spend", 0)) >= 1]
 
     if not insights:
-        lines = [
-            f"📢 **Meta 광고 일간 리포트 · {yesterday}**",
-            "어제 지출/노출이 발생한 캠페인이 없습니다.",
-            "",
-            "-# neki · Meta Ads 자동 리포트",
-        ]
-    else:
-        total_spend = sum(float(row["spend"]) for row in insights)
+        print(f"전송 생략: {yesterday} 지출 1원 이상인 집행중 캠페인 없음")
+        return
 
-        lines = [
-            f"📢 **Meta 광고 일간 리포트 · {yesterday}**",
-            f"💰 총 지출 **₩{format_krw(total_spend)}**",
-            "",
-            "---",
-            "",
-        ]
-        for row in sorted(insights, key=lambda r: float(r["spend"]), reverse=True):
-            spend = format_krw(row["spend"])
-            impressions = row.get("impressions", "0")
-            clicks = row.get("clicks", "0")
-            ctr = round(float(row.get("ctr", 0)), 2)
-            cpc = row.get("cpc")
-            cpc_display = f"₩{format_krw(cpc)}" if cpc else "-"
-            reach = row.get("reach", "0")
-            frequency = round(float(row.get("frequency", 0)), 2)
-            installs = get_action_count(row, "mobile_app_install")
-            activations = get_action_count(row, "omni_activate_app")
-            cpi_display = f"₩{format_krw(float(row['spend']) / installs)}" if installs else "-"
+    gender_breakdown = get_gender_breakdown(yesterday)
 
-            genders = gender_breakdown.get(row["campaign_name"], {})
-            reach_by_gender = gender_split(genders, "reach", "명")
-            freq_by_gender = gender_split(genders, "frequency", "회")
-            installs_by_gender = gender_split(genders, "installs", "건")
+    total_spend = sum(float(row["spend"]) for row in insights)
 
-            lines.append(
-                f"**{escape_discord(row['campaign_name'])}**\n"
-                f"💰 비용  지출 ₩{spend}  ·  CPC {cpc_display}\n"
-                f"👀 도달·참여  노출 {impressions}  ·  클릭 {clicks}  ·  CTR {ctr}%\n"
-                f"　도달 {reach}명({reach_by_gender})\n"
-                f"　빈도 {frequency}회({freq_by_gender})\n"
-                f"📲 전환  설치 {installs}건({installs_by_gender})  ·  "
-                f"CPI {cpi_display}  ·  앱활성화 {activations}건"
-            )
-            lines += ["", "---", ""]
-        lines += ["-# neki · Meta Ads 자동 리포트"]
+    lines = [
+        f"📢 **Meta 광고 일간 리포트 · {yesterday}**",
+        f"💰 총 지출 **₩{format_krw(total_spend)}**",
+        "",
+        "---",
+        "",
+    ]
+    for row in sorted(insights, key=lambda r: float(r["spend"]), reverse=True):
+        spend = format_krw(row["spend"])
+        impressions = row.get("impressions", "0")
+        clicks = row.get("clicks", "0")
+        ctr = round(float(row.get("ctr", 0)), 2)
+        cpc = row.get("cpc")
+        cpc_display = f"₩{format_krw(cpc)}" if cpc else "-"
+        reach = row.get("reach", "0")
+        frequency = round(float(row.get("frequency", 0)), 2)
+        installs = get_action_count(row, "mobile_app_install")
+        activations = get_action_count(row, "omni_activate_app")
+        cpi_display = f"₩{format_krw(float(row['spend']) / installs)}" if installs else "-"
+
+        genders = gender_breakdown.get(row["campaign_name"], {})
+        reach_by_gender = gender_split(genders, "reach", "명")
+        freq_by_gender = gender_split(genders, "frequency", "회")
+        installs_by_gender = gender_split(genders, "installs", "건")
+
+        lines.append(
+            f"**{escape_discord(row['campaign_name'])}**\n"
+            f"💰 비용  지출 ₩{spend}  ·  CPC {cpc_display}\n"
+            f"👀 도달·참여  노출 {impressions}  ·  클릭 {clicks}  ·  CTR {ctr}%\n"
+            f"　도달 {reach}명({reach_by_gender})\n"
+            f"　빈도 {frequency}회({freq_by_gender})\n"
+            f"📲 전환  설치 {installs}건({installs_by_gender})  ·  "
+            f"CPI {cpi_display}  ·  앱활성화 {activations}건"
+        )
+        lines += ["", "---", ""]
+    lines += ["-# neki · Meta Ads 자동 리포트"]
 
     payload = {
         "username": "네키 Meta Ads 봇",
